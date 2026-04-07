@@ -1,0 +1,31 @@
+/vendor/
+node_modules/
+/.env
+/.env.backup
+/.env.production
+/storage/*.key
+/storage/logs/*
+!/storage/logs/.gitkeep
+/storage/framework/cache/*
+!/storage/framework/cache/.gitkeep
+/storage/framework/sessions/*
+!/storage/framework/sessions/.gitkeep
+/storage/framework/views/*
+!/storage/framework/views/.gitkeep
+
+# IDE
+/.idea
+/.vscode
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# PHP / Composer
+composer.phar
+
+# Testing
+.phpunit.result.cache
+phpunit.xml
