@@ -1,42 +1,58 @@
 # Rodud Truck Ordering System
 
-A full-stack application built with Laravel (Backend & Admin Panel) and React Native Expo (Mobile App).
+A production-ready full-stack application built with Laravel (Backend & Admin Panel) and React Native Expo (Mobile App).
 
-## Prerequisites
-- PHP 8.2+
+## Production Setup Guide
+
+### 1. Backend (Laravel API & Admin Panel)
+
+**Server Requirements:**
+- PHP 8.2+ with necessary extensions (OpenSSL, PDO, Mbstring, Tokenizer, XML, Ctype, JSON, BCMath)
+- MySQL 8.0+ or PostgreSQL
 - Composer
-- Node.js & npm
-- SQLite (for standard local development)
+- A web server like Nginx or Apache
 
-## Installation Guide
-
-### 1. Setup Backend & Admin Panel (Laravel)
+**Setup Steps:**
 ```bash
 cd backend
-composer install
+composer install --optimize-autoloader --no-dev
 cp .env.example .env
 php artisan key:generate
-php artisan migrate
-php artisan db:seed --class=AdminSeeder
 ```
 
-**To start the backend server:**
+**Configure Environment Variables**
+Edit the `.env` file with your production secrets:
+- `APP_ENV=production`
+- `APP_DEBUG=false`
+- `APP_URL=https://your-production-domain.com`
+- `DB_CONNECTION=mysql`
+- `DB_DATABASE=your_database_name`
+- `DB_USERNAME=your_database_user`
+- `DB_PASSWORD=your_secure_password`
+- `MAIL_MAILER`, `MAIL_HOST`, `MAIL_USERNAME`, `MAIL_PASSWORD` (For admin notifications)
+- `SANCTUM_STATEFUL_DOMAINS=your-production-domain.com`
+
+**Run Migrations and Optimizations:**
 ```bash
-php artisan serve
+php artisan migrate --force
+php artisan db:seed --class=AdminSeeder --force
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
 ```
-Admin Panel will be running at: `http://localhost:8000/admin/login`
 
-### 2. Setup Mobile App (React Native Expo)
+### 2. Mobile App (React Native Expo)
+
+**Pre-build configuration:**
+1. Open `mobile/services/api.ts`.
+2. Update `API_BASE_URL` to point to your live production backend URL (e.g., `https://your-production-domain.com/api`).
+3. If using Twilio or real-time tracking in the future, add the respective keys.
+
+**Build for Production:**
+1. Ensure your `app.json` has the correct `bundleIdentifier` (iOS) and `package` (Android) names.
+2. Run EAS Build:
 ```bash
 cd mobile
-npm install
+npx eas build --platform all
 ```
-
-**To start the mobile app:**
-```bash
-npx expo start
-```
-Scan the QR code with the Expo Go app or press `a` or `i` to open in Android Emulator / iOS Simulator.
-
----
-**Note:** If you are running the mobile app on a physical device, make sure to update the `API_BASE_URL` in `mobile/services/api.ts` to your machine's local IP address instead of `localhost` or `10.0.2.2`.
+*(Requires an Expo account and eas-cli installed: `npm install -g eas-cli`)*
