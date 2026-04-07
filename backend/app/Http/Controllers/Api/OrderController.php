@@ -3,9 +3,12 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Order\StoreOrderRequest;
+use App\Http\Requests\Order\UpdateOrderRequest;
 use App\Models\Order;
 use App\Models\User;
 use App\Notifications\NewOrderNotification;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class OrderController extends Controller
@@ -13,7 +16,7 @@ class OrderController extends Controller
     /**
      * List all orders for the authenticated user.
      */
-    public function index(Request $request)
+    public function index(Request $request): JsonResponse
     {
         $orders = $request->user()->orders()
             ->orderBy('created_at', 'desc')
@@ -25,29 +28,21 @@ class OrderController extends Controller
     }
 
     /**
-     * Create a new order.
+     * Create a new shipping order.
      */
-    public function store(Request $request)
+    public function store(StoreOrderRequest $request): JsonResponse
     {
-        $request->validate([
-            'pickup_location' => 'required|string|max:500',
-            'delivery_location' => 'required|string|max:500',
-            'cargo_size' => 'required|string|max:100',
-            'cargo_weight' => 'required|numeric|min:0.01',
-            'notes' => 'nullable|string|max:1000',
-            'pickup_datetime' => 'required|date|after:now',
-            'delivery_datetime' => 'required|date|after:pickup_datetime',
-        ]);
+        $validated = $request->validated();
 
         $order = $request->user()->orders()->create([
-            'pickup_location' => $request->pickup_location,
-            'delivery_location' => $request->delivery_location,
-            'cargo_size' => $request->cargo_size,
-            'cargo_weight' => $request->cargo_weight,
-            'notes' => $request->notes,
-            'pickup_datetime' => $request->pickup_datetime,
-            'delivery_datetime' => $request->delivery_datetime,
-            'status' => 'pending',
+            'pickup_location'   => $validated['pickup_location'],
+            'delivery_location' => $validated['delivery_location'],
+            'cargo_size'        => $validated['cargo_size'],
+            'cargo_weight'      => $validated['cargo_weight'],
+            'notes'             => $validated['notes'] ?? null,
+            'pickup_datetime'   => $validated['pickup_datetime'],
+            'delivery_datetime' => $validated['delivery_datetime'],
+            'status'            => 'pending',
         ]);
 
         // Notify all admins about the new order
@@ -58,14 +53,14 @@ class OrderController extends Controller
 
         return response()->json([
             'message' => 'Order created successfully',
-            'order' => $order,
+            'order'   => $order->load('user'),
         ], 201);
     }
 
     /**
-     * Show a specific order.
+     * Show a specific order belonging to the authenticated user.
      */
-    public function show(Request $request, Order $order)
+    public function show(Request $request, Order $order): JsonResponse
     {
         // Ensure the user owns this order
         if ($order->user_id !== $request->user()->id) {
@@ -78,50 +73,41 @@ class OrderController extends Controller
     }
 
     /**
-     * Update an existing order (only if pending).
+     * Update an existing order (only if still pending).
      */
-    public function update(Request $request, Order $order)
+    public function update(UpdateOrderRequest $request, Order $order): JsonResponse
     {
         if ($order->user_id !== $request->user()->id) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
         if ($order->status !== 'pending') {
-            return response()->json(['message' => 'Cannot update order that is already in progress or delivered'], 422);
+            return response()->json([
+                'message' => 'Cannot update order that is already in progress or delivered.',
+            ], 422);
         }
 
-        $request->validate([
-            'pickup_location' => 'sometimes|string|max:500',
-            'delivery_location' => 'sometimes|string|max:500',
-            'cargo_size' => 'sometimes|string|max:100',
-            'cargo_weight' => 'sometimes|numeric|min:0.01',
-            'notes' => 'nullable|string|max:1000',
-            'pickup_datetime' => 'sometimes|date|after:now',
-            'delivery_datetime' => 'sometimes|date|after:pickup_datetime',
-        ]);
-
-        $order->update($request->only([
-            'pickup_location', 'delivery_location', 'cargo_size',
-            'cargo_weight', 'notes', 'pickup_datetime', 'delivery_datetime',
-        ]));
+        $order->update($request->validated());
 
         return response()->json([
             'message' => 'Order updated successfully',
-            'order' => $order->fresh(),
+            'order'   => $order->fresh()->load('user'),
         ]);
     }
 
     /**
-     * Delete an order (only if pending).
+     * Delete an order (only if still pending).
      */
-    public function destroy(Request $request, Order $order)
+    public function destroy(Request $request, Order $order): JsonResponse
     {
         if ($order->user_id !== $request->user()->id) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
         if ($order->status !== 'pending') {
-            return response()->json(['message' => 'Cannot delete order that is already in progress or delivered'], 422);
+            return response()->json([
+                'message' => 'Cannot delete order that is already in progress or delivered.',
+            ], 422);
         }
 
         $order->delete();
