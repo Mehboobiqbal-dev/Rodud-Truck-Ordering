@@ -1,9 +1,9 @@
+import { Platform } from 'react-native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Change this to your Laravel backend URL
-const API_BASE_URL = 'http://10.0.2.2:8000/api'; // Android emulator
-// const API_BASE_URL = 'http://localhost:8000/api'; // iOS simulator / Web
+const API_BASE_URL = Platform.OS === 'android' ? 'http://10.0.2.2:8000/api' : 'http://localhost:8000/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -31,7 +31,8 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     if (error.response?.status === 401) {
-      await AsyncStorage.multiRemove(['auth_token', 'user_data']);
+      await AsyncStorage.removeItem('auth_token');
+      await AsyncStorage.removeItem('user_data');
     }
     return Promise.reject(error);
   }
