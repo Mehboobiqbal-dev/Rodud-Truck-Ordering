@@ -2,8 +2,12 @@ import { Platform } from 'react-native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Change this to your Laravel backend URL
-const API_BASE_URL = Platform.OS === 'android' ? 'http://10.0.2.2:8000/api' : 'http://localhost:8000/api';
+// Production API URL
+const PRODUCTION_API = 'http://13.60.83.143/api';
+const LOCAL_API = Platform.OS === 'android' ? 'http://10.0.2.2:8000/api' : 'http://localhost:8000/api';
+
+// Use production API for real devices, local for web dev
+const API_BASE_URL = Platform.OS === 'web' ? LOCAL_API : PRODUCTION_API;
 
 const api = axios.create({
   baseURL: API_BASE_URL,
