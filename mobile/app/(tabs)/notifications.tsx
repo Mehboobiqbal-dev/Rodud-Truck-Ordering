@@ -93,7 +93,7 @@ export default function NotificationsScreen() {
 
     if (notificationType === 'admin_message') {
       return {
-        title: 'Message from Admin',
+        title: 'Message from Support',
         message: notification.data.message || 'Admin sent you a new message.',
         icon: 'comment-alt',
         color: '#a855f7',
@@ -152,7 +152,7 @@ export default function NotificationsScreen() {
           <Text style={styles.timeText}>{new Date(item.created_at).toLocaleDateString()} · {new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
           {isAdminMessage && (
             <TouchableOpacity style={styles.replyButton} onPress={() => handleReplyToAdmin(item)}>
-              <Text style={styles.replyButtonText}>Reply to Admin</Text>
+              <Text style={styles.replyButtonText}>Reply</Text>
             </TouchableOpacity>
           )}
         </View>

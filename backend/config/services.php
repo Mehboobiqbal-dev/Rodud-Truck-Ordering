@@ -30,12 +30,12 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Twilio (SMS Notifications — Optional)
+    | Twilio (SMS Notifications)
     |--------------------------------------------------------------------------
     */
     'twilio' => [
-        'sid'   => env('TWILIO_SID'),
-        'token' => env('TWILIO_AUTH_TOKEN'),
-        'from'  => env('TWILIO_FROM_NUMBER'),
+        'auth_sid'   => env('TWILIO_AUTH_SID'),
+        'auth_token' => env('TWILIO_AUTH_TOKEN'),
+        'phone_number' => env('TWILIO_PHONE_NUMBER'),
     ],
 ];

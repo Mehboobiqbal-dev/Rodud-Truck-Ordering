@@ -2,7 +2,7 @@
 
 namespace App\Notifications;
 
-use App\Models\Order;
+use App\Models\User;
 use App\Notifications\Channels\TwilioChannel;
 use App\Notifications\Messages\TwilioMessage;
 use Illuminate\Bus\Queueable;
@@ -10,14 +10,14 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class OrderStatusNotification extends Notification
+class UserMessageSmsNotification extends Notification
 {
     use Queueable;
 
     public function __construct(
-        protected Order $order,
-        protected string $oldStatus,
-        protected string $newStatus
+        protected User $user,
+        protected string $subject,
+        protected string $messageText
     ) {}
 
     public function via(object $notifiable): array
@@ -34,19 +34,18 @@ class OrderStatusNotification extends Notification
     public function toTwilio(object $notifiable): ?TwilioMessage
     {
         return new TwilioMessage(
-            "Order #{$this->order->id} status updated to " . ucfirst(str_replace('_', ' ', $this->newStatus)) . ". "
-            . "From {$this->order->pickup_location} to {$this->order->delivery_location}."
+            "New admin message: {$this->subject}. "
+            . substr($this->messageText, 0, 80) . (strlen($this->messageText) > 80 ? '...' : '')
         );
     }
 
     public function toArray(object $notifiable): array
     {
         return [
-            'type' => 'order_status',
-            'order_id' => $this->order->id,
-            'old_status' => $this->oldStatus,
-            'new_status' => $this->newStatus,
-            'message' => "Your order #{$this->order->id} status has been updated to " . ucfirst(str_replace('_', ' ', $this->newStatus)) . ".",
+            'type' => 'admin_message',
+            'subject' => $this->subject,
+            'message' => $this->messageText,
+            'timestamp' => now()->toIso8601String(),
         ];
     }
 }
