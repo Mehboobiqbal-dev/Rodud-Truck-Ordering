@@ -59,10 +59,10 @@ export const adminMessageAPI = {
   getUserMessages: (userId: number) => api.get(`/admin/messages/user/${userId}`),
   getSupportMessages: () => api.get('/admin/messages/support'),
 };
-    api.post('/auth/login', data),
 
+export const authAPI = {
+  login: (data: { email: string; password: string }) => api.post('/auth/login', data),
   logout: () => api.post('/auth/logout'),
-
   profile: () => api.get('/auth/profile'),
 };
 
@@ -91,6 +91,8 @@ export const notificationAPI = {
   getAll: () => api.get('/notifications'),
   markAsRead: () => api.post('/notifications/read'),
 };
+
+export const notificationsAPI = notificationAPI;
 
 // Support APIs
 export const supportAPI = {

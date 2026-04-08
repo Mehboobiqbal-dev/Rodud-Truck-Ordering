@@ -6,207 +6,146 @@ import {
   TouchableOpacity,
   RefreshControl,
   StyleSheet,
-  Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { FontAwesome5 } from '@expo/vector-icons';
 import Toast from 'react-native-toast-message';
-import { messageAPI } from '../../services/api';
-import { useAuth } from '../../context/AuthContext';
+import { notificationsAPI } from '../../services/api';
 
-interface Message {
-  id: number;
-  user_id: number;
-  order_id?: number;
-  sender_type: 'user' | 'admin';
-  subject: string;
-  message: string;
+interface Notification {
+  id: string;
+  type: string;
+  data: {
+    type?: string;
+    order_id?: number;
+    user_name?: string;
+    pickup_location?: string;
+    delivery_location?: string;
+    status?: string;
+    subject?: string;
+    message?: string;
+    old_status?: string;
+    new_status?: string;
+    timestamp?: string;
+  };
   read_at: string | null;
   created_at: string;
   updated_at: string;
-  order?: {
-    id: number;
-    status: string;
-  };
 }
 
-export default function MessagesScreen() {
-  const [messages, setMessages] = useState<Message[]>([]);
+export default function NotificationsScreen() {
+  const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const { user } = useAuth();
 
-  const fetchMessages = useCallback(async () => {
+  const fetchNotifications = useCallback(async () => {
     try {
-      const response = await messageAPI.getMessages();
-      setMessages(response.data.messages);
+      const response = await notificationsAPI.getAll();
+      setNotifications(response.data.notifications);
     } catch (error) {
-      console.log('Error fetching messages:', error);
-      Toast.show({ type: 'error', text1: 'Error', text2: 'Could not load messages.' });
+      console.log('Error fetching notifications:', error);
+      Toast.show({ type: 'error', text1: 'Error', text2: 'Could not load notifications.' });
     } finally {
       setLoading(false);
-    }
-  }, []);
-
-  const markAsRead = useCallback(async (messageId: number) => {
-    try {
-      await messageAPI.markAsRead(messageId);
-      setMessages(prevMessages =>
-        prevMessages.map(msg =>
-          msg.id === messageId ? { ...msg, read_at: new Date().toISOString() } : msg
-        )
-      );
-    } catch (error) {
-      console.log('Error marking message as read:', error);
-      Toast.show({ type: 'error', text1: 'Error', text2: 'Could not mark message as read.' });
+      setRefreshing(false);
     }
   }, []);
 
   const markAllAsRead = useCallback(async () => {
     try {
-      await messageAPI.markAllAsRead();
-      setMessages(prevMessages =>
-        prevMessages.map(msg => ({ ...msg, read_at: new Date().toISOString() }))
+      await notificationsAPI.markAsRead();
+      setNotifications(prevNotifications =>
+        prevNotifications.map(notification => ({ ...notification, read_at: new Date().toISOString() }))
       );
-      Toast.show({ type: 'success', text1: 'Success', text2: 'All messages marked as read.' });
+      Toast.show({ type: 'success', text1: 'Success', text2: 'All notifications marked as read.' });
     } catch (error) {
-      console.log('Error marking all messages as read:', error);
-      Toast.show({ type: 'error', text1: 'Error', text2: 'Could not mark all messages as read.' });
+      console.log('Error marking all notifications as read:', error);
+      Toast.show({ type: 'error', text1: 'Error', text2: 'Could not mark all notifications as read.' });
     }
   }, []);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await fetchMessages();
-    setRefreshing(false);
-  }, [fetchMessages]);
+    await fetchNotifications();
+  }, [fetchNotifications]);
 
   useEffect(() => {
-    fetchMessages();
-  }, [fetchMessages]);
+    fetchNotifications();
+  }, [fetchNotifications]);
 
-  const renderMessage = ({ item }: { item: Message }) => (
-    <TouchableOpacity
-      style={[styles.messageCard, !item.read_at && styles.unreadMessage]}
-      onPress={() => !item.read_at && markAsRead(item.id)}
-      activeOpacity={0.7}
-    >
-      <View style={styles.messageHeader}>
-        <View style={styles.senderInfo}>
-          <Text style={[styles.senderType, item.sender_type === 'admin' && styles.adminBadge]}>
-            {item.sender_type === 'admin' ? 'Admin' : 'You'}
-          </Text>
-          {item.order && (
-            <Text style={styles.orderBadge}>Order #{item.order.id}</Text>
-          )}
-        </View>
-        <Text style={styles.timestamp}>
-          {new Date(item.created_at).toLocaleDateString()}
-        </Text>
-      </View>
+  const getNotificationMeta = (notification: Notification) => {
+    const notificationType = notification.data.type || notification.type;
 
-      <Text style={styles.subject}>{item.subject}</Text>
-      <Text style={styles.messageText} numberOfLines={3}>
-        {item.message}
-      </Text>
-
-      {!item.read_at && (
-        <View style={styles.unreadIndicator}>
-          <Text style={styles.unreadText}>New</Text>
-        </View>
-      )}
-    </TouchableOpacity>
-  );
-
-  const unreadCount = messages.filter(msg => !msg.read_at).length;
-
-  if (loading) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>Messages</Text>
-        </View>
-        <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Loading messages...</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Messages</Text>
-        {unreadCount > 0 && (
-          <TouchableOpacity onPress={markAllAsRead} style={styles.markAllButton}>
-            <Text style={styles.markAllText}>Mark All Read ({unreadCount})</Text>
-          </TouchableOpacity>
-        )}
-      </View>
-
-      <FlatList
-        data={messages}
-        renderItem={renderMessage}
-        keyExtractor={(item) => item.id.toString()}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyTitle}>No messages yet</Text>
-            <Text style={styles.emptyText}>
-              Messages from admin and your support requests will appear here.
-            </Text>
-          </View>
-        }
-        contentContainerStyle={messages.length === 0 ? styles.emptyList : undefined}
-      />
-    </SafeAreaView>
-  );
-}
-
-  const renderItem = ({ item }: { item: any }) => {
-    const isUnread = !item.read_at;
-    const { type, message, old_status, new_status, subject } = item.data;
-
-    let iconName = 'bell';
-    let iconColor = '#6366f1';
-    let bgColor = 'rgba(99,102,241,0.1)';
-
-    if (type === 'order_status') {
-      iconName = 'truck-fast';
-      if (new_status === 'delivered') {
-        iconColor = '#22c55e';
-        bgColor = 'rgba(34,197,94,0.1)';
-      } else if (new_status === 'in_progress') {
-        iconColor = '#3b82f6';
-        bgColor = 'rgba(59,130,246,0.1)';
-      }
-    } else if (type === 'admin_message') {
-      iconName = 'comment-alt';
-      iconColor = '#a855f7';
-      bgColor = 'rgba(168,85,247,0.1)';
+    if (notificationType === 'support_request') {
+      return {
+        title: 'Support Request',
+        message: notification.data.message || 'New support request from customer.',
+        icon: 'headset',
+        color: '#f97316',
+        bgColor: 'rgba(249,115,22,0.12)',
+      };
     }
+
+    if (notificationType === 'admin_message') {
+      return {
+        title: 'Message from Admin',
+        message: notification.data.message || 'Admin sent you a new message.',
+        icon: 'comment-alt',
+        color: '#a855f7',
+        bgColor: 'rgba(168,85,247,0.12)',
+      };
+    }
+
+    if (notificationType === 'order_status') {
+      return {
+        title: 'Order Status Updated',
+        message: notification.data.message || `Your order #${notification.data.order_id} status was updated.`,
+        icon: 'truck-fast',
+        color: '#22c55e',
+        bgColor: 'rgba(34,197,94,0.12)',
+      };
+    }
+
+    if (notification.data.order_id && notification.data.pickup_location && notification.data.delivery_location) {
+      return {
+        title: `Order #${notification.data.order_id} Created`,
+        message: `New order from ${notification.data.user_name || 'customer'}: ${notification.data.pickup_location} ? ${notification.data.delivery_location}.`,
+        icon: 'box-open',
+        color: '#38bdf8',
+        bgColor: 'rgba(56,189,248,0.12)',
+      };
+    }
+
+    return {
+      title: 'Notification',
+      message: notification.data.message || notification.data.subject || 'You have a new update.',
+      icon: 'bell',
+      color: '#6366f1',
+      bgColor: 'rgba(99,102,241,0.12)',
+    };
+  };
+
+  const renderNotification = ({ item }: { item: Notification }) => {
+    const { title, message, icon, color, bgColor } = getNotificationMeta(item);
+    const isUnread = !item.read_at;
 
     return (
       <View style={[styles.notificationCard, isUnread && styles.unreadCard]}>
-        <View style={[styles.iconContainer, { backgroundColor: bgColor }]}>
-          <FontAwesome5 name={iconName} size={16} color={iconColor} />
+        <View style={[styles.iconContainer, { backgroundColor: bgColor }]}> 
+          <FontAwesome5 name={icon as any} size={18} color={color} />
         </View>
         <View style={styles.contentContainer}>
-          <Text style={styles.title}>
-            {type === 'admin_message' ? subject || 'Message from Admin' : 'Order Update'}
-          </Text>
-          <Text style={styles.messageText}>{message}</Text>
-          <Text style={styles.timeText}>
-            {new Date(item.created_at).toLocaleDateString()} {new Date(item.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-          </Text>
+          <Text style={styles.title}>{title}</Text>
+          <Text style={styles.messageText} numberOfLines={2}>{message}</Text>
+          <Text style={styles.timeText}>{new Date(item.created_at).toLocaleDateString()} · {new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
         </View>
         {isUnread && <View style={styles.unreadDot} />}
       </View>
     );
   };
 
-  if (isLoading) {
+  if (loading) {
     return (
       <View style={styles.loaderContainer}>
         <ActivityIndicator size="large" color="#6366f1" />
@@ -215,29 +154,39 @@ export default function MessagesScreen() {
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
-          <FontAwesome5 name="arrow-left" size={20} color="#fff" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Notifications</Text>
+    <SafeAreaView style={styles.container}>
+      <View style={styles.headerBar}>
+        <View style={styles.headerTitleRow}>
+          <View style={styles.logoBadge}>
+            <FontAwesome5 name="truck-moving" size={18} color="#fff" />
+          </View>
+          <View>
+            <Text style={styles.headerTitle}>Notifications</Text>
+            <Text style={styles.headerSubtitle}>Stay updated on orders and support replies.</Text>
+          </View>
+        </View>
+        {notifications.length > 0 && (
+          <TouchableOpacity onPress={markAllAsRead} style={styles.markAllBtn}>
+            <Text style={styles.markAllBtnText}>Mark all read</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       <FlatList
         data={notifications}
+        renderItem={renderNotification}
         keyExtractor={(item) => item.id}
-        renderItem={renderItem}
-        contentContainerStyle={styles.listContainer}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#6366f1" />}
+        contentContainerStyle={notifications.length === 0 ? styles.emptyList : styles.listContainer}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <FontAwesome5 name="bell-slash" size={48} color="#5a5a72" style={styles.emptyIcon} />
-            <Text style={styles.emptyText}>No notifications yet.</Text>
-            <Text style={styles.emptySubtext}>We'll notify you when your order updates.</Text>
+            <Text style={styles.emptyTitle}>No notifications yet</Text>
+            <Text style={styles.emptySubtext}>We’ll let you know when your order status changes or admin replies.</Text>
           </View>
         }
       />
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -248,51 +197,82 @@ const styles = StyleSheet.create({
   },
   loaderContainer: {
     flex: 1,
+    backgroundColor: '#06060a',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#06060a',
   },
-  header: {
+  headerBar: {
+    backgroundColor: '#12121c',
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 18,
+    borderBottomColor: 'rgba(255,255,255,0.08)',
+    borderBottomWidth: 1,
+  },
+  headerTitleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingTop: 60,
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-    backgroundColor: '#12121c',
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.06)',
+    justifyContent: 'space-between',
   },
-  backBtn: {
-    marginRight: 16,
-    padding: 8,
+  logoBadge: {
+    width: 46,
+    height: 46,
+    borderRadius: 14,
+    backgroundColor: '#6366f1',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 14,
   },
   headerTitle: {
-    fontSize: 20,
-    fontWeight: '700',
     color: '#fff',
+    fontSize: 22,
+    fontWeight: '800',
+  },
+  headerSubtitle: {
+    color: '#8b8ba3',
+    fontSize: 14,
+    marginTop: 4,
+  },
+  markAllBtn: {
+    marginTop: 14,
+    alignSelf: 'flex-start',
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: '#6366f1',
+  },
+  markAllBtnText: {
+    color: '#6366f1',
+    fontSize: 13,
+    fontWeight: '600',
   },
   listContainer: {
-    padding: 16,
+    padding: 20,
+  },
+  emptyList: {
     flexGrow: 1,
+    justifyContent: 'center',
+    padding: 20,
   },
   notificationCard: {
     flexDirection: 'row',
     backgroundColor: '#12121c',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
+    borderRadius: 18,
+    padding: 18,
+    marginBottom: 14,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.06)',
+    borderColor: 'rgba(255,255,255,0.05)',
     alignItems: 'center',
   },
   unreadCard: {
-    borderColor: 'rgba(99,102,241,0.3)',
-    backgroundColor: 'rgba(99,102,241,0.05)',
+    borderColor: '#6366f1',
+    backgroundColor: 'rgba(99,102,241,0.08)',
   },
   iconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 46,
+    height: 46,
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
@@ -301,24 +281,25 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   title: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#f0f0f5',
-    marginBottom: 4,
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '700',
+    marginBottom: 6,
   },
   messageText: {
+    color: '#c7c7dd',
     fontSize: 14,
-    color: '#8b8ba3',
     marginBottom: 8,
+    lineHeight: 20,
   },
   timeText: {
-    fontSize: 12,
     color: '#5a5a72',
+    fontSize: 12,
   },
   unreadDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
     backgroundColor: '#6366f1',
     marginLeft: 12,
   },
@@ -326,19 +307,22 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 100,
+    padding: 32,
   },
   emptyIcon: {
-    marginBottom: 16,
+    marginBottom: 18,
   },
-  emptyText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#f0f0f5',
+  emptyTitle: {
+    color: '#fff',
+    fontSize: 20,
+    fontWeight: '700',
     marginBottom: 8,
+    textAlign: 'center',
   },
   emptySubtext: {
+    color: '#8b8ba3',
     fontSize: 14,
-    color: '#5a5a72',
+    textAlign: 'center',
+    lineHeight: 22,
   },
 });

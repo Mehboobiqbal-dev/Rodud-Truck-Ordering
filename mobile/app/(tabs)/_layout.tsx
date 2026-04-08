@@ -51,8 +51,8 @@ export default function TabLayout() {
       <Tabs.Screen
         name="notifications"
         options={{
-          href: null,
-          headerShown: false,
+          title: 'Messages',
+          tabBarIcon: ({ color }) => <FontAwesome5 name="comments" size={20} color={color} />,
         }}
       />
       <Tabs.Screen
