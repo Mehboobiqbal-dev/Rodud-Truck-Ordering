@@ -102,6 +102,10 @@
                     <h2 class="text-lg font-bold text-white">Send Message to Customer</h2>
                 </div>
                 <div class="p-6">
+                    <p class="text-sm text-slate-400 mb-4">
+                        <i class="fas fa-info-circle text-indigo-400 mr-1"></i> Send a message to communicate with the user regarding their order. 
+                        They will receive this via <strong>Email</strong> (and <strong>SMS</strong> if configured).
+                    </p>
                     <form action="{{ route('admin.orders.sendMessage', $order) }}" method="POST">
                         @csrf
                         <div class="mb-4">
@@ -115,7 +119,7 @@
                                 class="w-full pl-3 pr-3 py-2.5 border border-slate-700 rounded-xl leading-5 bg-slate-800 text-slate-300 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-colors resize-y"></textarea>
                         </div>
                         <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 focus:ring-offset-slate-900 transition-colors">
-                            <i class="fas fa-paper-plane mr-2"></i> Send Email
+                            <i class="fas fa-paper-plane mr-2"></i> Send Notification
                         </button>
                     </form>
                 </div>
