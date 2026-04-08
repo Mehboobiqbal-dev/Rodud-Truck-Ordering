@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
-import { supportAPI } from '../../services/api';
+import { messageAPI } from '../../services/api';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import Toast from 'react-native-toast-message';
@@ -19,7 +19,7 @@ export default function SupportScreen() {
 
     setIsLoading(true);
     try {
-      await supportAPI.submit({ subject, message });
+      await messageAPI.sendSupportMessage({ subject, message });
       Toast.show({ type: 'success', text1: 'Message Sent', text2: 'Support will review your request shortly.' });
       setTimeout(() => router.back(), 1500);
     } catch (error: any) {
