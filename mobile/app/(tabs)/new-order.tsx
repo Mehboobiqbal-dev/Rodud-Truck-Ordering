@@ -8,6 +8,7 @@ import { FontAwesome5 } from '@expo/vector-icons';
 import { orderAPI } from '../../services/api';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
+import Toast from 'react-native-toast-message';
 
 const { width } = Dimensions.get('window');
 
@@ -23,8 +24,10 @@ export default function NewOrderScreen() {
   const router = useRouter();
 
   const handleSubmit = async () => {
+    if (isLoading) return; // Prevent double taps during submit
+    
     if (!pickup || !delivery || !cargoSize || !cargoWeight || !pickupDate || !deliveryDate) {
-      Alert.alert('Required Fields', 'Please fill in all required fields.');
+      Toast.show({ type: 'error', text1: 'Required Fields', text2: 'Please fill in all required fields.' });
       return;
     }
 
@@ -40,14 +43,24 @@ export default function NewOrderScreen() {
         delivery_datetime: `${deliveryDate} 17:00:00`,
       });
 
-      Alert.alert('Success', 'Truck request submitted successfully!', [
-        { text: 'OK', onPress: () => {
-          setPickup(''); setDelivery(''); setCargoSize(''); setCargoWeight(''); setNotes('');
-          router.push('/(tabs)');
-        }}
-      ]);
+      Toast.show({ type: 'success', text1: 'Success!', text2: 'Truck request submitted successfully!' });
+      
+      // Clear form
+      setPickup(''); setDelivery(''); setCargoSize(''); setCargoWeight(''); setNotes('');
+      
+      // Instant redirect to My Orders
+      router.push('/(tabs)');
     } catch (error: any) {
-      Alert.alert('Submission Failed', error.response?.data?.message || 'Something went wrong');
+      console.log('Order submission error:', error.response?.data);
+      let errorMessage = error.response?.data?.message || 'Something went wrong';
+      
+      if (error.response?.status === 422 && error.response?.data?.errors) {
+        const errors = error.response.data.errors;
+        const firstErrorKey = Object.keys(errors)[0];
+        errorMessage = errors[firstErrorKey][0];
+      }
+
+      Toast.show({ type: 'error', text1: 'Submission Failed', text2: errorMessage });
     } finally {
       setIsLoading(false);
     }
