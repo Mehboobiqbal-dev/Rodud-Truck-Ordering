@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Message;
 use App\Models\Order;
 use App\Models\User;
-use App\Notifications\UserMessageNotification;
+use App\Notifications\SupportMessageNotification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -74,5 +74,43 @@ class MessageController extends Controller
         return response()->json([
             'message' => 'All messages marked as read.',
         ]);
+    }
+
+    /**
+     * Reply to an admin message from the authenticated user.
+     */
+    public function reply(Request $request): JsonResponse
+    {
+        $request->validate([
+            'message_id' => 'required|exists:messages,id',
+            'subject' => 'required|string|max:255',
+            'message' => 'required|string|max:5000',
+        ]);
+
+        $originalMessage = Message::findOrFail($request->message_id);
+
+        if ($originalMessage->user_id !== $request->user()->id) {
+            return response()->json([
+                'error' => 'Unauthorized',
+            ], 403);
+        }
+
+        $reply = Message::create([
+            'user_id' => $request->user()->id,
+            'order_id' => $originalMessage->order_id,
+            'sender_type' => 'user',
+            'subject' => $request->subject,
+            'message' => $request->message,
+        ]);
+
+        $admins = User::where('role', 'admin')->get();
+        foreach ($admins as $admin) {
+            $admin->notify(new SupportMessageNotification($request->user(), $request->subject, $request->message));
+        }
+
+        return response()->json([
+            'message' => 'Reply sent to admin successfully.',
+            'data' => $reply,
+        ], 201);
     }
 }

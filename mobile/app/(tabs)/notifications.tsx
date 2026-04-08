@@ -11,6 +11,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FontAwesome5 } from '@expo/vector-icons';
 import Toast from 'react-native-toast-message';
+import { useRouter } from 'expo-router';
 import { notificationsAPI } from '../../services/api';
 
 interface Notification {
@@ -19,6 +20,7 @@ interface Notification {
   data: {
     type?: string;
     order_id?: number;
+    message_id?: number;
     user_name?: string;
     pickup_location?: string;
     delivery_location?: string;
@@ -51,6 +53,8 @@ export default function NotificationsScreen() {
       setRefreshing(false);
     }
   }, []);
+
+  const router = useRouter();
 
   const markAllAsRead = useCallback(async () => {
     try {
@@ -126,9 +130,16 @@ export default function NotificationsScreen() {
     };
   };
 
+  const handleReplyToAdmin = (notification: Notification) => {
+    const subject = notification.data.subject ? `Re: ${notification.data.subject}` : 'Reply to admin';
+    const query = `subject=${encodeURIComponent(subject)}${notification.data.message_id ? `&replyTo=${encodeURIComponent(String(notification.data.message_id))}` : ''}`;
+    router.push(`/(tabs)/support?${query}`);
+  };
+
   const renderNotification = ({ item }: { item: Notification }) => {
     const { title, message, icon, color, bgColor } = getNotificationMeta(item);
     const isUnread = !item.read_at;
+    const isAdminMessage = (item.data.type || item.type) === 'admin_message';
 
     return (
       <View style={[styles.notificationCard, isUnread && styles.unreadCard]}>
@@ -139,6 +150,11 @@ export default function NotificationsScreen() {
           <Text style={styles.title}>{title}</Text>
           <Text style={styles.messageText} numberOfLines={2}>{message}</Text>
           <Text style={styles.timeText}>{new Date(item.created_at).toLocaleDateString()} · {new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
+          {isAdminMessage && (
+            <TouchableOpacity style={styles.replyButton} onPress={() => handleReplyToAdmin(item)}>
+              <Text style={styles.replyButtonText}>Reply to Admin</Text>
+            </TouchableOpacity>
+          )}
         </View>
         {isUnread && <View style={styles.unreadDot} />}
       </View>
@@ -292,6 +308,21 @@ const styles = StyleSheet.create({
   timeText: {
     color: '#5a5a72',
     fontSize: 12,
+  },
+  replyButton: {
+    marginTop: 10,
+    alignSelf: 'flex-start',
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 999,
+    backgroundColor: 'rgba(99,102,241,0.12)',
+    borderWidth: 1,
+    borderColor: '#6366f1',
+  },
+  replyButtonText: {
+    color: '#6366f1',
+    fontSize: 13,
+    fontWeight: '700',
   },
   unreadDot: {
     width: 10,

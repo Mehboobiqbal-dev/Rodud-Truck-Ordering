@@ -1,15 +1,31 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { messageAPI } from '../../services/api';
 import { FontAwesome5 } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
 import Toast from 'react-native-toast-message';
 
 export default function SupportScreen() {
+  const params = useLocalSearchParams();
   const [subject, setSubject] = useState('');
   const [message, setMessage] = useState('');
+  const [replyTo, setReplyTo] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+
+  useEffect(() => {
+    const subjectParam = typeof params.subject === 'string' ? params.subject : Array.isArray(params.subject) ? params.subject[0] : '';
+    const replyParam = typeof params.replyTo === 'string' ? Number(params.replyTo) : null;
+
+    if (subjectParam) {
+      setSubject(subjectParam);
+    }
+    if (replyParam && !isNaN(replyParam)) {
+      setReplyTo(replyParam);
+    }
+  }, [params.subject, params.replyTo]);
+
+  const isReply = replyTo !== null;
 
   const handleSubmit = async () => {
     if (!subject.trim() || !message.trim()) {
@@ -19,8 +35,13 @@ export default function SupportScreen() {
 
     setIsLoading(true);
     try {
-      await messageAPI.sendSupportMessage({ subject, message });
-      Toast.show({ type: 'success', text1: 'Message Sent', text2: 'Support will review your request shortly.' });
+      if (isReply) {
+        await messageAPI.replyToAdminMessage({ message_id: replyTo as number, subject, message });
+        Toast.show({ type: 'success', text1: 'Reply Sent', text2: 'Your message has been sent to admin.' });
+      } else {
+        await messageAPI.sendSupportMessage({ subject, message });
+        Toast.show({ type: 'success', text1: 'Message Sent', text2: 'Support will review your request shortly.' });
+      }
       setTimeout(() => router.back(), 1500);
     } catch (error: any) {
       console.log('Error submitting support:', error);
@@ -35,7 +56,7 @@ export default function SupportScreen() {
         <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
           <FontAwesome5 name="arrow-left" size={20} color="#fff" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Contact Support</Text>
+        <Text style={styles.headerTitle}>{isReply ? 'Reply to Admin' : 'Contact Support'}</Text>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>

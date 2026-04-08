@@ -50,6 +50,8 @@ export const messageAPI = {
   markAllAsRead: () => api.post('/messages/mark-all-read'),
   sendSupportMessage: (data: { subject: string; message: string }) =>
     api.post('/support', data),
+  replyToAdminMessage: (data: { message_id: number; subject: string; message: string }) =>
+    api.post('/messages/reply', data),
 };
 
 // Admin Messages APIs (for admin users)

@@ -72,7 +72,7 @@ class AdminOrderController extends Controller
         $order->load('user');
 
         // Store the message in the database
-        Message::create([
+        $message = Message::create([
             'user_id' => $order->user->id,
             'order_id' => $order->id,
             'sender_type' => 'admin',
@@ -81,7 +81,7 @@ class AdminOrderController extends Controller
         ]);
 
         // Trigger in-app notification to the user
-        $order->user->notify(new UserMessageNotification($order, $request->subject, $request->message));
+        $order->user->notify(new UserMessageNotification($message, $request->subject, $request->message));
 
         // Send email to the user
         Mail::raw($request->message, function ($mail) use ($order, $request) {

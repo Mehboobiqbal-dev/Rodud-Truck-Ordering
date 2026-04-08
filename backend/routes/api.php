@@ -30,6 +30,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Messages
     Route::prefix('messages')->group(function () {
         Route::get('/', [MessageController::class, 'index']);
+        Route::post('/reply', [MessageController::class, 'reply']);
         Route::get('/unread-count', [MessageController::class, 'unreadCount']);
         Route::post('/{message}/mark-read', [MessageController::class, 'markAsRead']);
         Route::post('/mark-all-read', [MessageController::class, 'markAllAsRead']);
