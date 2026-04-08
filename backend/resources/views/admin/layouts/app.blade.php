@@ -225,7 +225,37 @@
         .header-right {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 20px;
+        }
+
+        .notification-btn {
+            position: relative;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border-color);
+            width: 38px; height: 38px;
+            border-radius: var(--radius-sm);
+            display: flex; align-items: center; justify-content: center;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .notification-btn:hover {
+            color: var(--text-primary);
+            background: rgba(255,255,255,0.1);
+        }
+
+        .notification-indicator {
+            position: absolute;
+            top: -4px; right: -4px;
+            background: var(--danger);
+            color: #fff;
+            font-size: 10px;
+            font-weight: 800;
+            width: 18px; height: 18px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            border: 2px solid var(--bg-secondary);
         }
 
         .btn-logout {
@@ -903,6 +933,15 @@
             <h2 class="header-title">@yield('header-title', 'Dashboard')</h2>
         </div>
         <div class="header-right">
+            <!-- Notifications Bell -->
+            <a href="{{ route('admin.notifications') }}" class="notification-btn" title="View Notifications">
+                <i class="far fa-bell"></i>
+                @if(auth()->user() && auth()->user()->unreadNotifications->count() > 0)
+                    <span class="notification-indicator">{{ auth()->user()->unreadNotifications->count() }}</span>
+                @endif
+            </a>
+
+            <!-- Logout -->
             <form action="{{ route('admin.logout') }}" method="POST" style="display:inline;">
                 @csrf
                 <button type="submit" class="btn-logout">
