@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Models\Message;
 use App\Notifications\OrderStatusNotification;
 use App\Notifications\UserMessageNotification;
 use Illuminate\Http\Request;
@@ -69,6 +70,15 @@ class AdminOrderController extends Controller
         ]);
 
         $order->load('user');
+
+        // Store the message in the database
+        Message::create([
+            'user_id' => $order->user->id,
+            'order_id' => $order->id,
+            'sender_type' => 'admin',
+            'subject' => $request->subject,
+            'message' => $request->message,
+        ]);
 
         // Trigger in-app notification to the user
         $order->user->notify(new UserMessageNotification($order, $request->subject, $request->message));

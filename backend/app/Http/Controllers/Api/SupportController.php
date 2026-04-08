@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Message;
 use App\Models\User;
 use App\Notifications\SupportMessageNotification;
 use Illuminate\Http\JsonResponse;
@@ -22,6 +23,14 @@ class SupportController extends Controller
 
         $user = $request->user();
 
+        // Store the message in the database
+        $supportMessage = Message::create([
+            'user_id' => $user->id,
+            'sender_type' => 'user',
+            'subject' => $request->subject,
+            'message' => $request->message,
+        ]);
+
         // Notify all admins about the support message
         $admins = User::where('role', 'admin')->get();
         foreach ($admins as $admin) {
@@ -30,6 +39,8 @@ class SupportController extends Controller
 
         return response()->json([
             'message' => 'Support request submitted successfully.',
+            'data' => $supportMessage,
         ], 201);
     }
 }
+
