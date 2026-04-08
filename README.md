@@ -16,7 +16,7 @@ A production-ready full-stack application built with Laravel (Backend & Admin Pa
 ```bash
 cd backend
 composer install --optimize-autoloader --no-dev
-cp .env.example .env
+cp .env
 php artisan key:generate
 ```
 
