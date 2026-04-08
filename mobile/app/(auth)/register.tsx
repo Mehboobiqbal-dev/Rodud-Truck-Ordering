@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
-import { 
-  View, Text, TextInput, TouchableOpacity, StyleSheet, 
-  ActivityIndicator, Alert, KeyboardAvoidingView, Platform, ScrollView, Dimensions, Keyboard 
+import {
+  View, Text, TextInput, TouchableOpacity, StyleSheet,
+  ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, Dimensions, Keyboard
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '../../context/AuthContext';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { FontAwesome5 } from '@expo/vector-icons';
+import Toast from 'react-native-toast-message';
 
 const { width } = Dimensions.get('window');
 
@@ -26,31 +27,31 @@ export default function RegisterScreen() {
   const handleRegister = async () => {
     Keyboard.dismiss();
     if (!name || !email || !password || !passwordConfirmation) {
-      Alert.alert('Missing Details', 'Please fill in all required fields');
+      Toast.show({ type: 'error', text1: 'Missing Details', text2: 'Please fill in all required fields' });
       return;
     }
 
     if (password !== passwordConfirmation) {
-      Alert.alert('Password Mismatch', 'Your passwords do not match');
+      Toast.show({ type: 'error', text1: 'Password Mismatch', text2: 'Your passwords do not match' });
       return;
     }
 
     setIsLoading(true);
     try {
       await register(name, email, password, passwordConfirmation, phone);
-      // Let the _layout.tsx routing guard handle redirection
+      Toast.show({ type: 'success', text1: 'Welcome!', text2: 'Registration successful.' });
     } catch (error: any) {
       console.log('Registration error:', error.response?.data);
       let errorMessage = error.response?.data?.message || 'Something went wrong';
-      
+
       // Handle Laravel Validation Errors (422)
       if (error.response?.status === 422 && error.response?.data?.errors) {
         const errors = error.response.data.errors;
         const firstErrorKey = Object.keys(errors)[0];
         errorMessage = errors[firstErrorKey][0];
       }
-      
-      Alert.alert('Registration Failed', errorMessage);
+
+      Toast.show({ type: 'error', text1: 'Registration Failed', text2: errorMessage });
     } finally {
       setIsLoading(false);
     }
@@ -64,8 +65,8 @@ export default function RegisterScreen() {
   const getIconColor = (field: string) => isFocused === field ? '#818cf8' : '#64748b';
 
   return (
-    <KeyboardAvoidingView 
-      style={styles.container} 
+    <KeyboardAvoidingView
+      style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <LinearGradient
@@ -74,13 +75,13 @@ export default function RegisterScreen() {
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
       />
-      
+
       {/* Decorative Orbs */}
       <View style={[styles.orb, { top: -20, right: -80, backgroundColor: '#4f46e5', width: 250, height: 250 }]} />
       <View style={[styles.orb, { bottom: 50, left: -40, backgroundColor: '#ec4899', width: 150, height: 150 }]} />
 
       <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-        
+
         <View style={styles.header}>
           <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
             <FontAwesome5 name="arrow-left" size={20} color="#f8fafc" />
@@ -91,7 +92,7 @@ export default function RegisterScreen() {
         <View style={styles.cardWrapper}>
           <BlurView intensity={30} tint="dark" style={styles.card}>
             <Text style={styles.cardSubtitle}>Join the premium logistics network</Text>
-            
+
             <View style={styles.inputGroup}>
               <View style={getInputStyle('name')}>
                 <FontAwesome5 name="user" size={16} color={getIconColor('name')} style={styles.inputIcon} />
@@ -172,8 +173,8 @@ export default function RegisterScreen() {
               </View>
             </View>
 
-            <TouchableOpacity 
-              style={styles.registerButton} 
+            <TouchableOpacity
+              style={styles.registerButton}
               onPress={handleRegister}
               disabled={isLoading}
               activeOpacity={0.8}
