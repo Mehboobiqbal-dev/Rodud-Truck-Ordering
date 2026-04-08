@@ -40,7 +40,17 @@ export default function RegisterScreen() {
       await register(name, email, password, passwordConfirmation, phone);
       // Let the _layout.tsx routing guard handle redirection
     } catch (error: any) {
-      Alert.alert('Registration Failed', error.response?.data?.message || 'Something went wrong');
+      console.log('Registration error:', error.response?.data);
+      let errorMessage = error.response?.data?.message || 'Something went wrong';
+      
+      // Handle Laravel Validation Errors (422)
+      if (error.response?.status === 422 && error.response?.data?.errors) {
+        const errors = error.response.data.errors;
+        const firstErrorKey = Object.keys(errors)[0];
+        errorMessage = errors[firstErrorKey][0];
+      }
+      
+      Alert.alert('Registration Failed', errorMessage);
     } finally {
       setIsLoading(false);
     }
