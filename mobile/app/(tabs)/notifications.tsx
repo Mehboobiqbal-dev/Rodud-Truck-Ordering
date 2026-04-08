@@ -110,7 +110,7 @@ export default function NotificationsScreen() {
     if (notification.data.order_id && notification.data.pickup_location && notification.data.delivery_location) {
       return {
         title: `Order #${notification.data.order_id} Created`,
-        message: `New order from ${notification.data.user_name || 'customer'}: ${notification.data.pickup_location} ? ${notification.data.delivery_location}.`,
+        message: `New order from ${notification.data.user_name || 'customer'}: ${notification.data.pickup_location} â†’ ${notification.data.delivery_location}.`,
         icon: 'box-open',
         color: '#38bdf8',
         bgColor: 'rgba(56,189,248,0.12)',
@@ -138,7 +138,7 @@ export default function NotificationsScreen() {
         <View style={styles.contentContainer}>
           <Text style={styles.title}>{title}</Text>
           <Text style={styles.messageText} numberOfLines={2}>{message}</Text>
-          <Text style={styles.timeText}>{new Date(item.created_at).toLocaleDateString()} · {new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
+          <Text style={styles.timeText}>{new Date(item.created_at).toLocaleDateString()} Â· {new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
         </View>
         {isUnread && <View style={styles.unreadDot} />}
       </View>
@@ -160,10 +160,7 @@ export default function NotificationsScreen() {
           <View style={styles.logoBadge}>
             <FontAwesome5 name="truck-moving" size={18} color="#fff" />
           </View>
-          <View>
-            <Text style={styles.headerTitle}>Notifications</Text>
-            <Text style={styles.headerSubtitle}>Stay updated on orders and support replies.</Text>
-          </View>
+          
         </View>
         {notifications.length > 0 && (
           <TouchableOpacity onPress={markAllAsRead} style={styles.markAllBtn}>
@@ -182,7 +179,7 @@ export default function NotificationsScreen() {
           <View style={styles.emptyContainer}>
             <FontAwesome5 name="bell-slash" size={48} color="#5a5a72" style={styles.emptyIcon} />
             <Text style={styles.emptyTitle}>No notifications yet</Text>
-            <Text style={styles.emptySubtext}>We’ll let you know when your order status changes or admin replies.</Text>
+            <Text style={styles.emptySubtext}>We'll let you know when your order status changes or admin replies.</Text>
           </View>
         }
       />
