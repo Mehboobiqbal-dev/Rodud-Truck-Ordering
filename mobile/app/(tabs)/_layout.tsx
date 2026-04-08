@@ -1,5 +1,5 @@
 import { Tabs, useRouter } from 'expo-router';
-import { FontAwesome5 } from '@expo/vector-icons';
+import { FontAwesome5, Ionicons } from '@expo/vector-icons';
 import { TouchableOpacity } from 'react-native';
 
 export default function TabLayout() {
@@ -13,7 +13,7 @@ export default function TabLayout() {
         headerTintColor: '#fff',
         headerRight: () => (
           <TouchableOpacity onPress={() => router.push('/(tabs)/notifications')} style={{ marginRight: 16, padding: 8 }}>
-            <FontAwesome5 name="bell" size={20} color="#f0f0f5" />
+            <Ionicons name="chatbubble-outline" size={20} color="#f0f0f5" />
           </TouchableOpacity>
         ),
         tabBarStyle: {

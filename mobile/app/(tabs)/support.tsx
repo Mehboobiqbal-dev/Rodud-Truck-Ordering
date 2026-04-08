@@ -43,7 +43,7 @@ export default function SupportScreen() {
           <FontAwesome5 name="headset" size={24} color="#6366f1" style={styles.infoIcon} />
           <Text style={styles.infoTitle}>How can we help?</Text>
           <Text style={styles.infoText}>
-            Send us a message and an admin will get back to you as soon as possible. It will appear directly in your notifications panel.
+            Send us a message and an admin will get back to you as soon as possible. It will appear directly in your Messages panel.
           </Text>
         </View>
 

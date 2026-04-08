@@ -914,6 +914,16 @@
                 <i class="fas fa-users"></i>
                 Users
             </a>
+            <a href="{{ route('admin.messages') }}" class="nav-link {{ request()->routeIs('admin.messages*') ? 'active' : '' }}">
+                <i class="fas fa-envelope"></i>
+                Messages
+                @php
+                    $unreadMessages = \App\Models\Message::where('sender_type', 'user')->whereNull('read_at')->count();
+                @endphp
+                @if($unreadMessages > 0)
+                    <span class="notification-badge">{{ $unreadMessages }}</span>
+                @endif
+            </a>
         </nav>
 
         <div class="sidebar-footer">
