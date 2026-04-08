@@ -50,15 +50,6 @@
                                     You have a new update.
                                 @endif
                             </p>
-                                    {{ $notification->data['subject'] }}: {{ Str::limit($notification->data['message'], 100) }}
-                                @elseif($notification->data['type'] === 'admin_message')
-                                    {{ $notification->data['subject'] }}: {{ Str::limit($notification->data['message'], 100) }}
-                                @elseif(isset($notification->data['pickup_location']))
-                                    Pickup: {{ $notification->data['pickup_location'] }} → Delivery: {{ $notification->data['delivery_location'] }}
-                                @else
-                                    You have a new update.
-                                @endif
-                            </p>
                             <span class="block text-[11px] text-slate-500 mt-2 font-medium">
                                 <i class="far fa-clock mr-1"></i> {{ $notification->created_at->diffForHumans() }}
                             </span>

@@ -85,7 +85,7 @@ class AdminNotificationController extends Controller
 
         // Send in-app notification to user
         $originalMessage->user->notify(new UserMessageNotification(
-            $originalMessage->order ?? $originalMessage->user,
+            $originalMessage->order,
             $request->subject,
             $request->message
         ));
