@@ -39,4 +39,9 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     // Notifications
     Route::get('/notifications', [\App\Http\Controllers\Admin\AdminNotificationController::class, 'index'])->name('notifications');
     Route::post('/notifications/{id}/mark-read', [\App\Http\Controllers\Admin\AdminNotificationController::class, 'markAsRead'])->name('notifications.markRead');
+
+    // Messages
+    Route::get('/messages', [\App\Http\Controllers\Admin\AdminNotificationController::class, 'messages'])->name('messages');
+    Route::post('/messages/{message}/mark-read', [\App\Http\Controllers\Admin\AdminNotificationController::class, 'markMessageRead'])->name('messages.markRead');
+    Route::post('/messages/reply', [\App\Http\Controllers\Admin\AdminNotificationController::class, 'reply'])->name('messages.reply');
 });

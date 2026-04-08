@@ -1,48 +1,168 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity, RefreshControl } from 'react-native';
-import { notificationAPI } from '../../services/api';
-import { FontAwesome5 } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import React, { useState, useEffect, useCallback } from 'react';
+import {
+  View,
+  Text,
+  FlatList,
+  TouchableOpacity,
+  RefreshControl,
+  StyleSheet,
+  Alert,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
+import { messageAPI } from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
 
-export default function NotificationsScreen() {
-  const [notifications, setNotifications] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+interface Message {
+  id: number;
+  user_id: number;
+  order_id?: number;
+  sender_type: 'user' | 'admin';
+  subject: string;
+  message: string;
+  read_at: string | null;
+  created_at: string;
+  updated_at: string;
+  order?: {
+    id: number;
+    status: string;
+  };
+}
+
+export default function MessagesScreen() {
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const router = useRouter();
+  const { user } = useAuth();
 
-  const fetchNotifications = async () => {
+  const fetchMessages = useCallback(async () => {
     try {
-      const response = await notificationAPI.getAll();
-      setNotifications(response.data.notifications);
-    } catch (error: any) {
-      console.log('Error fetching notifications:', error);
-      Toast.show({ type: 'error', text1: 'Error', text2: 'Could not load notifications.' });
-    } finally {
-      setIsLoading(false);
-      setRefreshing(false);
-    }
-  };
-
-  const markAllAsRead = async () => {
-    try {
-      await notificationAPI.markAsRead();
-      // Update local state to show all as read
-      setNotifications(notifications.map(n => ({ ...n, read_at: new Date().toISOString() })));
+      const response = await messageAPI.getMessages();
+      setMessages(response.data.messages);
     } catch (error) {
-      console.log('Error marking as read:', error);
+      console.log('Error fetching messages:', error);
+      Toast.show({ type: 'error', text1: 'Error', text2: 'Could not load messages.' });
+    } finally {
+      setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    fetchNotifications();
-    markAllAsRead(); // Immediately mark as read when they enter the screen
   }, []);
 
-  const onRefresh = () => {
+  const markAsRead = useCallback(async (messageId: number) => {
+    try {
+      await messageAPI.markAsRead(messageId);
+      setMessages(prevMessages =>
+        prevMessages.map(msg =>
+          msg.id === messageId ? { ...msg, read_at: new Date().toISOString() } : msg
+        )
+      );
+    } catch (error) {
+      console.log('Error marking message as read:', error);
+      Toast.show({ type: 'error', text1: 'Error', text2: 'Could not mark message as read.' });
+    }
+  }, []);
+
+  const markAllAsRead = useCallback(async () => {
+    try {
+      await messageAPI.markAllAsRead();
+      setMessages(prevMessages =>
+        prevMessages.map(msg => ({ ...msg, read_at: new Date().toISOString() }))
+      );
+      Toast.show({ type: 'success', text1: 'Success', text2: 'All messages marked as read.' });
+    } catch (error) {
+      console.log('Error marking all messages as read:', error);
+      Toast.show({ type: 'error', text1: 'Error', text2: 'Could not mark all messages as read.' });
+    }
+  }, []);
+
+  const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    fetchNotifications();
-  };
+    await fetchMessages();
+    setRefreshing(false);
+  }, [fetchMessages]);
+
+  useEffect(() => {
+    fetchMessages();
+  }, [fetchMessages]);
+
+  const renderMessage = ({ item }: { item: Message }) => (
+    <TouchableOpacity
+      style={[styles.messageCard, !item.read_at && styles.unreadMessage]}
+      onPress={() => !item.read_at && markAsRead(item.id)}
+      activeOpacity={0.7}
+    >
+      <View style={styles.messageHeader}>
+        <View style={styles.senderInfo}>
+          <Text style={[styles.senderType, item.sender_type === 'admin' && styles.adminBadge]}>
+            {item.sender_type === 'admin' ? 'Admin' : 'You'}
+          </Text>
+          {item.order && (
+            <Text style={styles.orderBadge}>Order #{item.order.id}</Text>
+          )}
+        </View>
+        <Text style={styles.timestamp}>
+          {new Date(item.created_at).toLocaleDateString()}
+        </Text>
+      </View>
+
+      <Text style={styles.subject}>{item.subject}</Text>
+      <Text style={styles.messageText} numberOfLines={3}>
+        {item.message}
+      </Text>
+
+      {!item.read_at && (
+        <View style={styles.unreadIndicator}>
+          <Text style={styles.unreadText}>New</Text>
+        </View>
+      )}
+    </TouchableOpacity>
+  );
+
+  const unreadCount = messages.filter(msg => !msg.read_at).length;
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Messages</Text>
+        </View>
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>Loading messages...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Messages</Text>
+        {unreadCount > 0 && (
+          <TouchableOpacity onPress={markAllAsRead} style={styles.markAllButton}>
+            <Text style={styles.markAllText}>Mark All Read ({unreadCount})</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+
+      <FlatList
+        data={messages}
+        renderItem={renderMessage}
+        keyExtractor={(item) => item.id.toString()}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyTitle}>No messages yet</Text>
+            <Text style={styles.emptyText}>
+              Messages from admin and your support requests will appear here.
+            </Text>
+          </View>
+        }
+        contentContainerStyle={messages.length === 0 ? styles.emptyList : undefined}
+      />
+    </SafeAreaView>
+  );
+}
 
   const renderItem = ({ item }: { item: any }) => {
     const isUnread = !item.read_at;

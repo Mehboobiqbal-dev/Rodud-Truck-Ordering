@@ -29,14 +29,22 @@
                         <!-- Content -->
                         <div class="flex-1 min-w-0 pr-4">
                             <h3 class="text-sm font-semibold {{ $notification->unread() ? 'text-white' : 'text-slate-300' }}">
-                                @if(isset($notification->data['order_id']))
+                                @if($notification->data['type'] === 'support_request')
+                                    Support Request from {{ $notification->data['user_name'] }}
+                                @elseif($notification->data['type'] === 'admin_message')
+                                    Message from Admin
+                                @elseif(isset($notification->data['order_id']))
                                     New Truck Order #{{ $notification->data['order_id'] }} by {{ $notification->data['user_name'] ?? 'User' }}
                                 @else
                                     System Notification
                                 @endif
                             </h3>
                             <p class="text-xs text-slate-400 mt-1 line-clamp-2">
-                                @if(isset($notification->data['pickup_location']))
+                                @if($notification->data['type'] === 'support_request')
+                                    {{ $notification->data['subject'] }}: {{ Str::limit($notification->data['message'], 100) }}
+                                @elseif($notification->data['type'] === 'admin_message')
+                                    {{ $notification->data['subject'] }}: {{ Str::limit($notification->data['message'], 100) }}
+                                @elseif(isset($notification->data['pickup_location']))
                                     Pickup: {{ $notification->data['pickup_location'] }} → Delivery: {{ $notification->data['delivery_location'] }}
                                 @else
                                     You have a new update.
@@ -49,7 +57,11 @@
 
                         <!-- Actions -->
                         <div class="flex flex-col items-end gap-2 shrink-0">
-                            @if(isset($notification->data['order_id']))
+                            @if($notification->data['type'] === 'support_request')
+                                <a href="{{ route('admin.messages') }}" class="text-xs font-medium text-indigo-400 hover:text-indigo-300 transition-colors">
+                                    View Messages
+                                </a>
+                            @elseif(isset($notification->data['order_id']))
                                 <a href="{{ route('admin.orders.show', $notification->data['order_id']) }}" class="text-xs font-medium text-indigo-400 hover:text-indigo-300 transition-colors">
                                     View Order
                                 </a>

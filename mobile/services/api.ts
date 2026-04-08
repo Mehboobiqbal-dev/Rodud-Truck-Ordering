@@ -42,12 +42,23 @@ api.interceptors.response.use(
   }
 );
 
-// Auth APIs
-export const authAPI = {
-  register: (data: { name: string; email: string; password: string; password_confirmation: string; phone?: string }) =>
-    api.post('/auth/register', data),
+// Messages APIs
+export const messageAPI = {
+  getMessages: () => api.get('/messages'),
+  getUnreadCount: () => api.get('/messages/unread-count'),
+  markAsRead: (messageId: number) => api.post(`/messages/${messageId}/mark-read`),
+  markAllAsRead: () => api.post('/messages/mark-all-read'),
+  sendSupportMessage: (data: { subject: string; message: string }) =>
+    api.post('/support', data),
+};
 
-  login: (data: { email: string; password: string }) =>
+// Admin Messages APIs (for admin users)
+export const adminMessageAPI = {
+  sendToUser: (data: { user_id: number; order_id?: number; subject: string; message: string; send_email?: boolean }) =>
+    api.post('/admin/messages/send', data),
+  getUserMessages: (userId: number) => api.get(`/admin/messages/user/${userId}`),
+  getSupportMessages: () => api.get('/admin/messages/support'),
+};
     api.post('/auth/login', data),
 
   logout: () => api.post('/auth/logout'),

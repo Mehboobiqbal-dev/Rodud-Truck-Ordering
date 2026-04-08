@@ -45,8 +45,8 @@ export default function SettingsScreen() {
           <FontAwesome5 name="chevron-right" size={14} color="#5a5a72" />
         </TouchableOpacity>
         <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/(tabs)/notifications')} activeOpacity={0.7}>
-          <View style={styles.menuIconInfo}><FontAwesome5 name="bell" size={16} color="#6366f1" /></View>
-          <Text style={styles.menuText}>Notifications</Text>
+          <View style={styles.menuIconInfo}><FontAwesome5 name="comments" size={16} color="#6366f1" /></View>
+          <Text style={styles.menuText}>Messages</Text>
           <FontAwesome5 name="chevron-right" size={14} color="#5a5a72" />
         </TouchableOpacity>
       </View>
