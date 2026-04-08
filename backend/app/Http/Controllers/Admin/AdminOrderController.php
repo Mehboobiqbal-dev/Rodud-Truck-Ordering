@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Notifications\OrderStatusNotification;
+use App\Notifications\UserMessageNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 
@@ -48,7 +50,13 @@ class AdminOrderController extends Controller
             'status' => 'required|in:pending,in_progress,delivered',
         ]);
 
-        $order->update(['status' => $request->status]);
+        $oldStatus = $order->status;
+        $newStatus = $request->status;
+
+        if ($oldStatus !== $newStatus) {
+            $order->update(['status' => $newStatus]);
+            $order->user->notify(new OrderStatusNotification($order, $oldStatus, $newStatus));
+        }
 
         return redirect()->back()->with('success', 'Order status updated to ' . ucfirst(str_replace('_', ' ', $request->status)));
     }
@@ -62,6 +70,9 @@ class AdminOrderController extends Controller
 
         $order->load('user');
 
+        // Trigger in-app notification to the user
+        $order->user->notify(new UserMessageNotification($order, $request->subject, $request->message));
+
         // Send email to the user
         Mail::raw($request->message, function ($mail) use ($order, $request) {
             $mail->to($order->user->email)
@@ -71,3 +82,4 @@ class AdminOrderController extends Controller
         return redirect()->back()->with('success', 'Message sent to ' . $order->user->name . ' successfully.');
     }
 }
+

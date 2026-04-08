@@ -3,9 +3,11 @@ import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { useAuth } from '../../context/AuthContext';
 import { FontAwesome5 } from '@expo/vector-icons';
 import Toast from 'react-native-toast-message';
+import { useRouter } from 'expo-router';
 
 export default function SettingsScreen() {
   const { user, logout } = useAuth();
+  const router = useRouter();
 
   const handleLogout = () => {
     Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
@@ -42,7 +44,7 @@ export default function SettingsScreen() {
           <Text style={styles.menuText}>Edit Profile</Text>
           <FontAwesome5 name="chevron-right" size={14} color="#5a5a72" />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.menuItem} onPress={() => comingSoon('Notifications')} activeOpacity={0.7}>
+        <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/(tabs)/notifications')} activeOpacity={0.7}>
           <View style={styles.menuIconInfo}><FontAwesome5 name="bell" size={16} color="#6366f1" /></View>
           <Text style={styles.menuText}>Notifications</Text>
           <FontAwesome5 name="chevron-right" size={14} color="#5a5a72" />
@@ -56,7 +58,7 @@ export default function SettingsScreen() {
           <Text style={styles.menuText}>FAQ</Text>
           <FontAwesome5 name="chevron-right" size={14} color="#5a5a72" />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.menuItem} onPress={() => comingSoon('Contact Support')} activeOpacity={0.7}>
+        <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/(tabs)/support')} activeOpacity={0.7}>
           <View style={styles.menuIconInfo}><FontAwesome5 name="headset" size={16} color="#6366f1" /></View>
           <Text style={styles.menuText}>Contact Support</Text>
           <FontAwesome5 name="chevron-right" size={14} color="#5a5a72" />

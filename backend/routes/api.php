@@ -24,4 +24,11 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Orders
     Route::apiResource('orders', OrderController::class);
+
+    // Notifications
+    Route::get('/notifications', [\App\Http\Controllers\Api\NotificationController::class, 'index']);
+    Route::post('/notifications/read', [\App\Http\Controllers\Api\NotificationController::class, 'markAsRead']);
+
+    // Support
+    Route::post('/support', [\App\Http\Controllers\Api\SupportController::class, 'store']);
 });

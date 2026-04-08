@@ -55,7 +55,6 @@ export const authAPI = {
   profile: () => api.get('/auth/profile'),
 };
 
-// Order APIs
 export const orderAPI = {
   getAll: () => api.get('/orders'),
 
@@ -74,6 +73,17 @@ export const orderAPI = {
   update: (id: number, data: any) => api.put(`/orders/${id}`, data),
 
   delete: (id: number) => api.delete(`/orders/${id}`),
+};
+
+// Notification APIs
+export const notificationAPI = {
+  getAll: () => api.get('/notifications'),
+  markAsRead: () => api.post('/notifications/read'),
+};
+
+// Support APIs
+export const supportAPI = {
+  submit: (data: { subject: string; message: string }) => api.post('/support', data),
 };
 
 export default api;
