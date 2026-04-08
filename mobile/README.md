@@ -1,50 +1,158 @@
-# Welcome to your Expo app 👋
+# Rodud Truck Ordering Mobile App
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A React Native mobile application built with Expo for ordering trucks. This app allows users to register, log in, create truck orders, view order history, and receive notifications. Admins can manage orders and communicate with users via SMS.
 
-## Get started
+## Features
 
-1. Install dependencies
+- **User Authentication**: Secure login and registration using Laravel Sanctum
+- **Order Management**: Create new truck orders with detailed specifications
+- **Dashboard**: View order history and status updates
+- **Real-time Notifications**: Receive email and SMS notifications for order updates
+- **Admin Communication**: Direct messaging between admins and users via SMS using Twilio
+- **Cross-platform**: Runs on Android and iOS devices
 
+## Tech Stack
+
+- **Frontend**: React Native with Expo
+- **Backend**: Laravel 11 API with Sanctum authentication
+- **Database**: MySQL
+- **Notifications**: Laravel Notifications (Database, Mail, SMS via Twilio)
+- **Build Tool**: Expo Application Services (EAS)
+
+## Prerequisites
+
+- Node.js (v18 or higher)
+- npm or yarn
+- Expo CLI
+- Android Studio (for Android development)
+- Xcode (for iOS development, macOS only)
+
+## Installation
+
+1. Clone the repository:
+   ```bash
+   git clone <repository-url>
+   cd mobile
+   ```
+
+2. Install dependencies:
    ```bash
    npm install
    ```
 
-2. Start the app
+3. Install Expo CLI globally:
+   ```bash
+   npm install -g @expo/cli
+   ```
 
+## Configuration
+
+1. Create a `.env` file in the mobile directory (if not present) and configure the API endpoint:
+   ```
+   API_BASE_URL=https://your-production-api-url.com/api
+   ```
+
+2. Ensure the backend API is running and accessible.
+
+## Running the App
+
+### Development Mode
+
+1. Start the Expo development server:
    ```bash
    npx expo start
    ```
 
-In the output, you'll find options to open the app in a
+2. Choose your target platform:
+   - Press `a` for Android emulator
+   - Press `i` for iOS simulator
+   - Scan QR code with Expo Go app on your device
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+### Development Build
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+For a more accurate development experience:
 
-## Get a fresh project
+1. Install EAS CLI:
+   ```bash
+   npm install -g eas-cli
+   ```
 
-When you're ready, run:
+2. Build a development client:
+   ```bash
+   eas build --platform android --profile development
+   # or
+   eas build --platform ios --profile development
+   ```
 
-```bash
-npm run reset-project
+3. Install the build on your device and run:
+   ```bash
+   npx expo start --dev-client
+   ```
+
+## Building for Production
+
+### Android APK
+
+1. Configure EAS build:
+   ```bash
+   eas build:configure
+   ```
+
+2. Build the production APK:
+   ```bash
+   eas build --platform android --profile production
+   ```
+
+3. Download the APK from the EAS dashboard or the provided link.
+
+### iOS (macOS only)
+
+1. Configure EAS build:
+   ```bash
+   eas build:configure
+   ```
+
+2. Build the production IPA:
+   ```bash
+   eas build --platform ios --profile production
+   ```
+
+## Backend Setup
+
+This mobile app requires a Laravel backend API. Ensure the backend is deployed and configured with:
+
+- Laravel Sanctum for authentication
+- Twilio for SMS notifications
+- Proper CORS settings for mobile app communication
+
+Refer to the backend README for detailed setup instructions.
+
+## Project Structure
+
+```
+mobile/
+├── app/                    # App screens and navigation
+├── assets/                 # Images and static assets
+├── components/             # Reusable UI components
+├── constants/              # App constants and configuration
+├── context/                # React context providers
+├── hooks/                  # Custom React hooks
+├── scripts/                # Build and utility scripts
+└── services/               # API service functions
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## Contributing
 
-## Learn more
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/your-feature`
+3. Commit your changes: `git commit -am 'Add some feature'`
+4. Push to the branch: `git push origin feature/your-feature`
+5. Submit a pull request
 
-To learn more about developing your project with Expo, look at the following resources:
+## License
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-## Join the community
+## Support
 
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+For support, please contact the development team or create an issue in the repository.
