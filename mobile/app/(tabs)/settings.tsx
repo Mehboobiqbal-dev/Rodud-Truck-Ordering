@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { useAuth } from '../../context/AuthContext';
 import { FontAwesome5 } from '@expo/vector-icons';
+import Toast from 'react-native-toast-message';
 
 export default function SettingsScreen() {
   const { user, logout } = useAuth();
@@ -11,6 +12,14 @@ export default function SettingsScreen() {
       { text: 'Cancel', style: 'cancel' },
       { text: 'Sign Out', style: 'destructive', onPress: logout },
     ]);
+  };
+
+  const comingSoon = (feature: string) => {
+    Toast.show({
+      type: 'info',
+      text1: 'Coming Soon',
+      text2: `${feature} is currently under development.`,
+    });
   };
 
   return (
@@ -28,12 +37,12 @@ export default function SettingsScreen() {
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Account Setup</Text>
-        <TouchableOpacity style={styles.menuItem}>
+        <TouchableOpacity style={styles.menuItem} onPress={() => comingSoon('Edit Profile')} activeOpacity={0.7}>
           <View style={styles.menuIconInfo}><FontAwesome5 name="user" size={16} color="#6366f1" /></View>
           <Text style={styles.menuText}>Edit Profile</Text>
           <FontAwesome5 name="chevron-right" size={14} color="#5a5a72" />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.menuItem}>
+        <TouchableOpacity style={styles.menuItem} onPress={() => comingSoon('Notifications')} activeOpacity={0.7}>
           <View style={styles.menuIconInfo}><FontAwesome5 name="bell" size={16} color="#6366f1" /></View>
           <Text style={styles.menuText}>Notifications</Text>
           <FontAwesome5 name="chevron-right" size={14} color="#5a5a72" />
@@ -42,19 +51,19 @@ export default function SettingsScreen() {
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Help & Support</Text>
-        <TouchableOpacity style={styles.menuItem}>
+        <TouchableOpacity style={styles.menuItem} onPress={() => comingSoon('FAQ')} activeOpacity={0.7}>
           <View style={styles.menuIconInfo}><FontAwesome5 name="question-circle" size={16} color="#6366f1" /></View>
           <Text style={styles.menuText}>FAQ</Text>
           <FontAwesome5 name="chevron-right" size={14} color="#5a5a72" />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.menuItem}>
+        <TouchableOpacity style={styles.menuItem} onPress={() => comingSoon('Contact Support')} activeOpacity={0.7}>
           <View style={styles.menuIconInfo}><FontAwesome5 name="headset" size={16} color="#6366f1" /></View>
           <Text style={styles.menuText}>Contact Support</Text>
           <FontAwesome5 name="chevron-right" size={14} color="#5a5a72" />
         </TouchableOpacity>
       </View>
 
-      <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
+      <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout} activeOpacity={0.7}>
         <FontAwesome5 name="sign-out-alt" size={16} color="#ef4444" />
         <Text style={styles.logoutBtnText}>Sign Out</Text>
       </TouchableOpacity>
