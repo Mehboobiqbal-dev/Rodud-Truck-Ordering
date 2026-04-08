@@ -47,10 +47,13 @@ function RootLayoutNav() {
   );
 }
 
+import Toast from 'react-native-toast-message';
+
 export default function RootLayout() {
   return (
     <AuthProvider>
       <RootLayoutNav />
+      <Toast />
     </AuthProvider>
   );
 }

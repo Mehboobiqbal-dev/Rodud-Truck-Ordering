@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { 
   View, Text, TextInput, TouchableOpacity, StyleSheet, 
-  ActivityIndicator, Alert, KeyboardAvoidingView, Platform, ScrollView, Dimensions, Keyboard
+  ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, Dimensions, Keyboard
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '../../context/AuthContext';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { FontAwesome5 } from '@expo/vector-icons';
+import Toast from 'react-native-toast-message';
 
 const { width } = Dimensions.get('window');
 
@@ -23,16 +24,25 @@ export default function LoginScreen() {
   const handleLogin = async () => {
     Keyboard.dismiss();
     if (!email || !password) {
-      Alert.alert('Missing Details', 'Please enter your email and password.');
+      Toast.show({ type: 'error', text1: 'Missing Details', text2: 'Please enter your email and password.' });
       return;
     }
 
     setIsLoading(true);
     try {
       await login(email, password);
-      // Let the _layout.tsx routing guard handle redirection
+      Toast.show({ type: 'success', text1: 'Welcome back!', text2: 'Logged in successfully.' });
     } catch (error: any) {
-      Alert.alert('Login Failed', error.response?.data?.message || 'Invalid credentials');
+      console.log('Login error:', error.response?.data);
+      let errorMessage = error.response?.data?.message || 'Invalid credentials';
+      
+      if (error.response?.status === 422 && error.response?.data?.errors) {
+        const errors = error.response.data.errors;
+        const firstErrorKey = Object.keys(errors)[0];
+        errorMessage = errors[firstErrorKey][0];
+      }
+
+      Toast.show({ type: 'error', text1: 'Login Failed', text2: errorMessage });
     } finally {
       setIsLoading(false);
     }
