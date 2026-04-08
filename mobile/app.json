@@ -14,6 +14,7 @@
     },
     "android": {
       "package": "com.rodud.trucks",
+      "usesCleartextTraffic": true,
       "adaptiveIcon": {
         "backgroundColor": "#0f172a",
         "foregroundImage": "./assets/images/android-icon-foreground.png",

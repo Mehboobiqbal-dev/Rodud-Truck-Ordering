@@ -41,6 +41,11 @@ class User extends Authenticatable
         return $this->hasMany(Order::class);
     }
 
+    public function messages()
+    {
+        return $this->hasMany(Message::class);
+    }
+
     // ---------- Helpers ----------
 
     public function isAdmin(): bool
