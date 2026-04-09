@@ -6,11 +6,11 @@ use App\Models\Order;
 use App\Notifications\Channels\TwilioChannel;
 use App\Notifications\Messages\TwilioMessage;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Contracts\Queue\ShouldQueue;   // ← REQUIRED
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class NewOrderNotification extends Notification
+class NewOrderNotification extends Notification implements ShouldQueue  // ← FIXED
 {
     use Queueable;
 
@@ -21,11 +21,11 @@ class NewOrderNotification extends Notification
     public function via(object $notifiable): array
     {
         $channels = ['mail', 'database'];
-        
+
         if (config('services.twilio.auth_sid') && $notifiable->phone) {
             $channels[] = TwilioChannel::class;
         }
-        
+
         return $channels;
     }
 

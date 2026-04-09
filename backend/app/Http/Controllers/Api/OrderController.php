@@ -14,9 +14,6 @@ use Illuminate\Support\Facades\Log;
 
 class OrderController extends Controller
 {
-    /**
-     * List all orders for the authenticated user.
-     */
     public function index(Request $request): JsonResponse
     {
         $orders = $request->user()->orders()
@@ -28,14 +25,10 @@ class OrderController extends Controller
         ]);
     }
 
-    /**
-     * Create a new shipping order.
-     */
     public function store(StoreOrderRequest $request): JsonResponse
     {
         $validated = $request->validated();
 
-        // Create the order
         $order = $request->user()->orders()->create([
             'pickup_location'   => $validated['pickup_location'],
             'delivery_location' => $validated['delivery_location'],
@@ -47,11 +40,9 @@ class OrderController extends Controller
             'status'            => 'pending',
         ]);
 
-        // ←←← NOTIFICATIONS ARE NOW SAFE ←←←
-        // They can no longer crash the order creation
+        // Notifications are now 100% safe and queued
         try {
             $admins = User::where('role', 'admin')->get();
-
             foreach ($admins as $admin) {
                 $admin->notify(new NewOrderNotification($order));
             }
@@ -61,7 +52,6 @@ class OrderController extends Controller
                 'error'    => $e->getMessage(),
                 'trace'    => $e->getTraceAsString(),
             ]);
-            // Do NOT re-throw → order creation still succeeds
         }
 
         return response()->json([
@@ -70,9 +60,6 @@ class OrderController extends Controller
         ], 201);
     }
 
-    /**
-     * Show a specific order belonging to the authenticated user.
-     */
     public function show(Request $request, Order $order): JsonResponse
     {
         if ($order->user_id !== $request->user()->id) {
@@ -84,9 +71,6 @@ class OrderController extends Controller
         ]);
     }
 
-    /**
-     * Update an existing order (only if still pending).
-     */
     public function update(UpdateOrderRequest $request, Order $order): JsonResponse
     {
         if ($order->user_id !== $request->user()->id) {
@@ -107,9 +91,6 @@ class OrderController extends Controller
         ]);
     }
 
-    /**
-     * Delete an order (only if still pending).
-     */
     public function destroy(Request $request, Order $order): JsonResponse
     {
         if ($order->user_id !== $request->user()->id) {
