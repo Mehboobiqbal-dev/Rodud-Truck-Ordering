@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { 
   View, Text, TextInput, TouchableOpacity, StyleSheet, 
-  ScrollView, ActivityIndicator, Alert, KeyboardAvoidingView, Platform, Dimensions 
+  ScrollView, ActivityIndicator, KeyboardAvoidingView, Platform, Dimensions 
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { FontAwesome5 } from '@expo/vector-icons';
@@ -24,16 +24,17 @@ export default function NewOrderScreen() {
   const router = useRouter();
 
   const handleSubmit = async () => {
-    if (isLoading) return; // Prevent double taps during submit
-    
+    if (isLoading) return;
+
     if (!pickup || !delivery || !cargoSize || !cargoWeight || !pickupDate || !deliveryDate) {
       Toast.show({ type: 'error', text1: 'Required Fields', text2: 'Please fill in all required fields.' });
       return;
     }
 
     setIsLoading(true);
+
     try {
-      await orderAPI.create({
+      const response = await orderAPI.create({
         pickup_location: pickup,
         delivery_location: delivery,
         cargo_size: cargoSize,
@@ -43,21 +44,32 @@ export default function NewOrderScreen() {
         delivery_datetime: `${deliveryDate} 17:00:00`,
       });
 
-      Toast.show({ type: 'success', text1: 'Success!', text2: 'Truck request submitted successfully!' });
-      
-      // Clear form
-      setPickup(''); setDelivery(''); setCargoSize(''); setCargoWeight(''); setNotes('');
-      
-      // Instant redirect to My Orders
-      router.push('/(tabs)');
+      // Check if backend responded with 2xx
+      if (response?.status >= 200 && response?.status < 300) {
+        Toast.show({ type: 'success', text1: 'Success!', text2: 'Truck request submitted successfully!' });
+
+        // Clear form
+        setPickup(''); setDelivery(''); setCargoSize(''); setCargoWeight(''); setNotes('');
+
+        // Redirect
+        router.push('/(tabs)');
+      } else {
+        Toast.show({ type: 'error', text1: 'Submission Failed', text2: 'Unexpected response from server' });
+      }
+
     } catch (error: any) {
-      console.log('Order submission error:', error.response?.data);
-      let errorMessage = error.response?.data?.message || 'Something went wrong';
-      
-      if (error.response?.status === 422 && error.response?.data?.errors) {
+      console.log('Order submission error:', error);
+
+      let errorMessage = 'Something went wrong';
+
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.response?.data?.errors) {
         const errors = error.response.data.errors;
-        const firstErrorKey = Object.keys(errors)[0];
-        errorMessage = errors[firstErrorKey][0];
+        const firstKey = Object.keys(errors)[0];
+        errorMessage = errors[firstKey][0];
+      } else if (error.message) {
+        errorMessage = error.message;
       }
 
       Toast.show({ type: 'error', text1: 'Submission Failed', text2: errorMessage });
