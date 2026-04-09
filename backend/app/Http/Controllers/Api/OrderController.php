@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Notifications\NewOrderNotification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class OrderController extends Controller
 {
@@ -34,6 +35,7 @@ class OrderController extends Controller
     {
         $validated = $request->validated();
 
+        // Create the order
         $order = $request->user()->orders()->create([
             'pickup_location'   => $validated['pickup_location'],
             'delivery_location' => $validated['delivery_location'],
@@ -45,10 +47,21 @@ class OrderController extends Controller
             'status'            => 'pending',
         ]);
 
-        // Notify all admins about the new order
-        $admins = User::where('role', 'admin')->get();
-        foreach ($admins as $admin) {
-            $admin->notify(new NewOrderNotification($order));
+        // ←←← NOTIFICATIONS ARE NOW SAFE ←←←
+        // They can no longer crash the order creation
+        try {
+            $admins = User::where('role', 'admin')->get();
+
+            foreach ($admins as $admin) {
+                $admin->notify(new NewOrderNotification($order));
+            }
+        } catch (\Exception $e) {
+            Log::error('Failed to send NewOrderNotification', [
+                'order_id' => $order->id,
+                'error'    => $e->getMessage(),
+                'trace'    => $e->getTraceAsString(),
+            ]);
+            // Do NOT re-throw → order creation still succeeds
         }
 
         return response()->json([
@@ -62,7 +75,6 @@ class OrderController extends Controller
      */
     public function show(Request $request, Order $order): JsonResponse
     {
-        // Ensure the user owns this order
         if ($order->user_id !== $request->user()->id) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
