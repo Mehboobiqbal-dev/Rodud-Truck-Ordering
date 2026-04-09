@@ -64,6 +64,7 @@ export const adminMessageAPI = {
 
 export const authAPI = {
   login: (data: { email: string; password: string }) => api.post('/auth/login', data),
+  register: (data: any) => api.post('/auth/register', data),
   logout: () => api.post('/auth/logout'),
   profile: () => api.get('/auth/profile'),
 };
